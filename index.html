@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konjugations-Challenge</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #game {
+            margin-top: 20px;
+        }
+        button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .result {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Konjugations-Challenge</h1>
+    <div id="game">
+        <p id="verb"></p>
+        <p id="person"></p>
+        <div id="options"></div>
+        <p id="timer">Zeit: 10</p>
+        <p id="score">Punkte: 0</p>
+        <p id="round">Runde: 1</p>
+        <p id="wordCount">Wort: 1/30</p>
+    </div>
+    <p id="result" class="result"></p>
+    <div id="endRound" class="hidden">
+        <p id="endMessage"></p>
+        <button onclick="repeatRound()">Runde wiederholen</button>
+        <button onclick="nextRound()">Nächste Runde</button>
+    </div>
+
+    <script>
+        const verbs = {
+            "machen": ["mache", "machst", "macht", "machen", "macht", "machen"],
+            "arbeiten": ["arbeite", "arbeitest", "arbeitet", "arbeiten", "arbeitet", "arbeiten"],
+            "fragen": ["frage", "fragst", "fragt", "fragen", "fragt", "fragen"],
+            "spielen": ["spiele", "spielst", "spielt", "spielen", "spielt", "spielen"],
+            "lernen": ["lerne", "lernst", "lernt", "lernen", "lernt", "lernen"],
+            "wohnen": ["wohne", "wohnst", "wohnt", "wohnen", "wohnt", "wohnen"],
+            "hören": ["höre", "hörst", "hört", "hören", "hört", "hören"],
+            "kaufen": ["kaufe", "kaufst", "kauft", "kaufen", "kauft", "kaufen"],
+            "lieben": ["liebe", "liebst", "liebt", "lieben", "liebt", "lieben"],
+            "reisen": ["reise", "reist", "reist", "reisen", "reist", "reisen"],
+            "gehen": ["gehe", "gehst", "geht", "gehen", "geht", "gehen"],
+            "sehen": ["sehe", "siehst", "sieht", "sehen", "seht", "sehen"],
+            "essen": ["esse", "isst", "isst", "essen", "esst", "essen"],
+            "geben": ["gebe", "gibst", "gibt", "geben", "gebt", "geben"],
+            "nehmen": ["nehme", "nimmst", "nimmt", "nehmen", "nehmt", "nehmen"],
+            "sprechen": ["spreche", "sprichst", "spricht", "sprechen", "sprecht", "sprechen"],
+            "kommen": ["komme", "kommst", "kommt", "kommen", "kommt", "kommen"],
+            "fahren": ["fahre", "fährst", "fährt", "fahren", "fahrt", "fahren"],
+            "schreiben": ["schreibe", "schreibst", "schreibt", "schreiben", "schreibt", "schreiben"],
+            "lesen": ["lese", "liest", "liest", "lesen", "lest", "lesen"],
+            "aufstehen": ["stehe auf", "stehst auf", "steht auf", "stehen auf", "steht auf", "stehen auf"],
+            "einkaufen": ["kaufe ein", "kaufst ein", "kauft ein", "kaufen ein", "kauft ein", "kaufen ein"],
+            "anrufen": ["rufe an", "rufst an", "ruft an", "rufen an", "ruft an", "rufen an"],
+            "ausgehen": ["gehe aus", "gehst aus", "geht aus", "gehen aus", "geht aus", "gehen aus"],
+            "fernsehen": ["sehe fern", "siehst fern", "sieht fern", "sehen fern", "seht fern", "sehen fern"],
+            "mitkommen": ["komme mit", "kommst mit", "kommt mit", "kommen mit", "kommt mit", "kommen mit"],
+            "zurückkommen": ["komme zurück", "kommst zurück", "kommt zurück", "kommen zurück", "kommt zurück", "kommen zurück"],
+            "aufräumen": ["räume auf", "räumst auf", "räumt auf", "räumen auf", "räumt auf", "räumen auf"],
+            "weggehen": ["gehe weg", "gehst weg", "geht weg", "gehen weg", "geht weg", "gehen weg"],
+            "zuhören": ["höre zu", "hörst zu", "hört zu", "hören zu", "hört zu", "hören zu"],
+            "verstehen": ["verstehe", "verstehst", "versteht", "verstehen", "versteht", "verstehen"],
+            "verkaufen": ["verkaufe", "verkaufst", "verkauft", "verkaufen", "verkauft", "verkaufen"],
+            "besuchen": ["besuche", "besuchst", "besucht", "besuchen", "besucht", "besuchen"],
+            "bekommen": ["bekomme", "bekommst", "bekommt", "bekommen", "bekommt", "bekommen"],
+            "bezahlen": ["bezahle", "bezahlst", "bezahlt", "bezahlen", "bezahlt", "bezahlen"],
+            "erzählen": ["erzähle", "erzählst", "erzählt", "erzählen", "erzählt", "erzählen"],
+            "erklären": ["erkläre", "erklärst", "erklärt", "erklären", "erklärt", "erklären"],
+            "verdienen": ["verdiene", "verdienst", "verdient", "verdienen", "verdient", "verdienen"],
+            "empfehlen": ["empfehle", "empfiehlst", "empfiehlt", "empfehlen", "empfehlt", "empfehlen"],
+            "beginnen": ["beginne", "beginnst", "beginnt", "beginnen", "beginnt", "beginnen"],
+            "können": ["kann", "kannst", "kann", "können", "könnt", "können"],
+            "müssen": ["muss", "musst", "muss", "müssen", "müsst", "müssen"],
+            "wollen": ["will", "willst", "will", "wollen", "wollt", "wollen"],
+            "sollen": ["soll", "sollst", "soll", "sollen", "sollt", "sollen"],
+            "dürfen": ["darf", "darfst", "darf", "dürfen", "dürft", "dürfen"],
+            "mögen": ["mag", "magst", "mag", "mögen", "mögt", "mögen"],
+            "sein": ["bin", "bist", "ist", "sind", "seid", "sind"],
+            "haben": ["habe", "hast", "hat", "haben", "habt", "haben"],
+            "werden": ["werde", "wirst", "wird", "werden", "werdet", "werden"]
+        };
+
+        const persons = ["ich", "du", "er/sie/es", "wir", "ihr", "sie/Sie"];
+
+        let score = 0;
+        let timer;
+        let timeLeft = 10;
+        let currentVerb = '';
+        let correctAnswer = '';
+        let round = 1;
+        let wordCount = 0;
+
+        function startGame() {
+            document.getElementById('result').innerText = '';
+            document.getElementById('endRound').classList.add('hidden');
+            wordCount = 0;
+            score = 0;
+            document.getElementById('round').innerText = `Runde: ${round}`;
+            document.getElementById('score').innerText = 'Punkte: 0';
+            loadNewQuestion();
+            startTimer();
+        }
+
+        function loadNewQuestion() {
+            if (wordCount >= 30) {
+                endRound();
+                return;
+            }
+
+            const verbKeys = Object.keys(verbs);
+            currentVerb = verbKeys[Math.floor(Math.random() * verbKeys.length)];
+            const personIndex = Math.floor(Math.random() * persons.length);
+            correctAnswer = verbs[currentVerb][personIndex];
+
+            document.getElementById('verb').innerHTML = `Verb: <strong>${currentVerb}</strong>`;
+            document.getElementById('person').innerHTML = `Person: <strong>${persons[personIndex]}</strong>`;
+            document.getElementById('wordCount').innerText = `Wort: ${wordCount + 1}/30`;
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+
+            const allAnswers = new Set([correctAnswer]);
+            while (allAnswers.size < 4) {
+                const randomAnswer = verbs[currentVerb][Math.floor(Math.random() * persons.length)];
+                allAnswers.add(randomAnswer);
+            }
+
+            const allAnswersArray = Array.from(allAnswers);
+            shuffleArray(allAnswersArray);
+
+            allAnswersArray.forEach(answer => {
+                const button = document.createElement('button');
+                button.innerText = answer;
+                button.onclick = () => checkAnswer(answer);
+                optionsDiv.appendChild(button);
+            });
+
+            wordCount++;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startTimer() {
+            timeLeft = getTimerDuration();
+            document.getElementById('timer').innerText = 'Zeit: ' + timeLeft;
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = 'Zeit: ' + timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endRound();
+                }
+            }, 1000);
+        }
+
+        function getTimerDuration() {
+            switch(round) {
+                case 2:
+                    return 8;
+                case 3:
+                    return 6;
+                case 4:
+                    return 5;
+                case 5:
+                    return 4;
+                default:
+                    return 10;
+            }
+        }
+
+        function checkAnswer(answer) {
+            clearInterval(timer);
+            if (answer === correctAnswer) {
+                score += 1;
+                document.getElementById('result').innerText = 'Richtig!';
+            } else {
+                document.getElementById('result').innerText = 'Falsch!';
+            }
+            document.getElementById('score').innerText = 'Punkte: ' + score;
+            if (wordCount < 30) {
+                loadNewQuestion();
+                startTimer();
+            } else {
+                endRound();
+            }
+        }
+
+        function endRound() {
+            clearInterval(timer);
+            document.getElementById('endRound').classList.remove('hidden');
+            document.getElementById('endMessage').innerText = getEndMessage();
+        }
+
+        function getEndMessage() {
+            if (score <= 10) {
+                return 'Du hast 0 bis 10 Punkte erreicht. Du musst die Runde wiederholen.';
+            } else if (score <= 20) {
+                return 'Du hast 11 bis 20 Punkte erreicht. Wir empfehlen dringend, die Runde zu wiederholen.';
+            } else if (score <= 26) {
+                return 'Du hast 21 bis 26 Punkte erreicht. Es ist nicht schlecht, aber es ist besser, die Runde zu wiederholen.';
+            } else {
+                return 'Herzlichen Glückwunsch, du kommst in die nächste Runde.';
+            }
+        }
+
+        function repeatRound() {
+            startGame();
+        }
+
+        function nextRound() {
+            if (score >= 27) {
+                round++;
+                startGame();
+            } else {
+                document.getElementById('endMessage').innerText = 'Du musst mindestens 27 Punkte erreichen, um zur nächsten Runde zu gelangen.';
+            }
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
